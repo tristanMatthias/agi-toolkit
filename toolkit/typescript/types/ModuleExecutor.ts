@@ -1,3 +1,5 @@
+import { ModulePlannerTask } from "./ModulePlanner";
+
 export interface ModuleExecutor {
-  mainLoop(): Promise<void>;
+  executeTask(task: ModulePlannerTask): Promise<any>;
 }

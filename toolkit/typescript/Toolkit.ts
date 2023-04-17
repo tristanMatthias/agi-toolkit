@@ -4,6 +4,7 @@ import Config from "./Configuration";
 import { Module } from "./Module";
 import { Shell } from "./Shell";
 import { ModuleExecutor, ModuleLLM, ModuleMemory, ModulePlanner, ModuleType } from "./types";
+import { ModuleCLI } from "./types/ModuleCLI";
 
 export class Toolkit {
   app = express();
@@ -42,6 +43,10 @@ export class Toolkit {
     } else {
       // Construct a module from a local path
       constructor = require(uri).default;
+      if (!constructor) {
+        this.ui.error("System", `Module ${type} not found at ${uri}. Does it export a default class?`);
+        process.exit(1);
+      }
       module = new constructor(this.host, this);
       this.#modulesToInitialize.add(module);
     }
@@ -56,6 +61,7 @@ export class Toolkit {
   module(type: "memory"): ModuleMemory
   module(type: "llm"): ModuleLLM
   module(type: "planner"): ModulePlanner
+  module(type: "cli"): ModuleCLI
   module(type: ModuleType) {
     let m = this.#modules.get(type);
 
@@ -71,6 +77,8 @@ export class Toolkit {
         return m as unknown as ModuleLLM;
       case "planner":
         return m as unknown as ModulePlanner;
+      case "cli":
+        return m as unknown as ModuleCLI;
     }
   }
 

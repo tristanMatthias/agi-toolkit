@@ -10,6 +10,6 @@ import { Toolkit } from "./toolkit/typescript/Toolkit";
   toolkit.registerCommand(WriteFile);
 
   toolkit
-    .module("executor")
+    .module("cli")
     .mainLoop();
 })();
