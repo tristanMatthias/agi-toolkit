@@ -1,0 +1,34 @@
+You are breaking down a larger task into a series of sub tasks and atomic commands (building a tree of tasks).
+The leaf nodes of this tree are atomic commands, and the non-leaf nodes are sub tasks.
+
+Current goal:
+{{goal}}
+
+---
+
+This goal sits in a tree of other tasks, and this is the current hierarchy:
+{{hierarchy}}
+
+---
+
+Your available atomic commands are:
+{{commands}}
+
+---
+
+You should return only ONE of these 3 responses:
+1. A JSON array of sub tasks to plan out recursively, in the shape of:
+  `{ "type": "subplan", "children": [
+    {type: "subtask", description: "Short description of subtask 1"},
+    {type: "command", command: "Atomic command to execute including parameters"},
+    {type: "subtask", description: "Short description of subtask 2"},
+  ]}`
+  The children should ordered, and can be any combination of subtasks and commands.
+  The subtasks will be recursively passed back to your program to be broken down further.
+
+2. Ask the user for more information, in the shape of:
+  `{ "type": "ask", "question": "Question to gain clarity, and move closer to outputting option number 2" }`
+3. Raise an error, and let the user know that there are no commands that match the goal, and it cannot be broken down further, in the shape of:
+  `{ "type": "error", "message": "Optional short description of any other useful information" }`
+
+Your output must only be one of these 3 JSON responses, and it must be a valid JSON string.

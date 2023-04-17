@@ -1,0 +1,22 @@
+{
+  "id": {
+    "type": "uuid",
+    "primary": true
+  },
+  "parentTaskId": {
+    "type": "uuid",
+    "ref": "task.id",
+    "nullable": true
+  },
+  "description": "string",
+  "command": {
+    "type": "string",
+    "nullable": true
+  },
+  "completed": "boolean",
+  "planned": "boolean",
+  "result": {
+    "type": "string",
+    "nullable": true
+  }
+}

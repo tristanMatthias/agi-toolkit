@@ -1,0 +1,1 @@
+Take in this JSON, and sort each leaf node by priority based on it's individual context, and the context of the entire tree.

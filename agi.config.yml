@@ -1,0 +1,4 @@
+modules:
+  llm:
+    apiKey: ${OPENAI_API_KEY}
+    model: gpt-4
