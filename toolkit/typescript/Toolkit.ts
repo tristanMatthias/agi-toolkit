@@ -1,10 +1,12 @@
+import chalk from "chalk";
 import express from "express";
 import { Command, CommandConstructor } from "./Command";
 import Config from "./Configuration";
 import { Module } from "./Module";
 import { Shell } from "./Shell";
+import * as defaultCommands from "./commands";
 import { ModuleExecutor, ModuleLLM, ModuleMemory, ModulePlanner, ModuleType } from "./types";
-import { ModuleCLI } from "./types/ModuleCLI";
+import { ModuleAgent } from "./types/ModuleAgent";
 
 export class Toolkit {
   app = express();
@@ -19,6 +21,10 @@ export class Toolkit {
 
     for (const module of this.#modulesToInitialize) {
       await module.initialize();
+    }
+
+    for (const cmd of Object.values(defaultCommands)) {
+      this.registerCommand(cmd);
     }
   }
 
@@ -44,7 +50,7 @@ export class Toolkit {
       // Construct a module from a local path
       constructor = require(uri).default;
       if (!constructor) {
-        this.ui.error("System", `Module ${type} not found at ${uri}. Does it export a default class?`);
+        this.ui.error("Toolkit", `Module ${chalk.yellow(type)} not found at ${chalk.blue(uri)}. Does it export a default class?`);
         process.exit(1);
       }
       module = new constructor(this.host, this);
@@ -52,7 +58,7 @@ export class Toolkit {
     }
 
 
-    this.ui.inform(`Loaded module ${type} from ${uri}`);
+    this.ui.debug("Toolkit", `Loaded module ${chalk.yellow(type)} from ${chalk.blue(uri)}`);
     this.#modules.set(type, module);
     return module;
   }
@@ -61,7 +67,7 @@ export class Toolkit {
   module(type: "memory"): ModuleMemory
   module(type: "llm"): ModuleLLM
   module(type: "planner"): ModulePlanner
-  module(type: "cli"): ModuleCLI
+  module(type: "agent"): ModuleAgent
   module(type: ModuleType) {
     let m = this.#modules.get(type);
 
@@ -77,8 +83,8 @@ export class Toolkit {
         return m as unknown as ModuleLLM;
       case "planner":
         return m as unknown as ModulePlanner;
-      case "cli":
-        return m as unknown as ModuleCLI;
+      case "agent":
+        return m as unknown as ModuleAgent;
     }
   }
 
@@ -86,11 +92,16 @@ export class Toolkit {
   registerCommand(cmd: CommandConstructor) {
     const command = new cmd(this);
     this.#commands.set(command.name, command);
+    this.ui.debug("Toolkit", `Registered command ${chalk.yellow(command.name)}`);
+  }
+
+  command(name: string) {
+    return this.#commands.get(name);
   }
 
   async runCommand(name: string, args: string[]) {
     const command = this.#commands.get(name);
-    if (!command) throw new Error(`Command ${name} not found`);
+    if (!command) throw new Error(`Command "${name}" not found`);
     return command.run(args);
   }
 

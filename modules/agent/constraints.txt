@@ -1,0 +1,5 @@
+- ~4000 word limit for short term memory. Your short term memory is short, so immediately save important information to files.
+- If you are unsure how you previously did something or want to recall past events, thinking about similar events will help you remember.
+- No user assistance
+- Use subprocesses for commands that will not terminate within a few minutes
+- Do not invent new commands or use commands that are not listed

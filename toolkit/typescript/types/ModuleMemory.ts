@@ -43,4 +43,5 @@ export interface ModuleMemoryDeleteOptions {
 
 export interface ModuleMemorySizeOptions {
   entity: string;
+  query?: any;
 }

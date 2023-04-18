@@ -1,9 +1,19 @@
 import chalk from 'chalk';
 import inquirer, { QuestionCollection } from 'inquirer';
 
+const typeWriter = async (text?: string, prefix?: string) => {
+  if (!text) return;
+  if (prefix) process.stdout.write(prefix);
+  for (let i = 0; i < text.length; i++) {
+    process.stdout.write(text.charAt(i));
+    await new Promise(resolve => setTimeout(resolve, 15));
+  }
+  process.stdout.write('\n');
+}
+
 export class Shell {
   debug(entity: string, message: string) {
-    console.log('ℹ️', chalk.yellow(`[${entity}]`), chalk.grey(message));
+    console.log('🔧', chalk.magenta(`[${entity}]`), chalk.grey(message));
   }
 
   inform(message: string) {
@@ -18,8 +28,8 @@ export class Shell {
     console.log('❌', chalk.red(`[${entity}]: ${message}`));
   }
 
-  say(agentName: string, message: string) {
-    console.log('🤖', chalk.green(`${agentName}:`), message);
+  async say(agentName: string, message: string) {
+    return typeWriter(message, `🤖 ${chalk.green(`${agentName}:`)} `);
   }
 
   prompt(question: QuestionCollection) {

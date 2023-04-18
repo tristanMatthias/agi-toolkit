@@ -1,7 +1,9 @@
+import fs from "fs";
 import * as OpenAI from "openai";
+import path from "path";
 import { Module } from "../../../toolkit/typescript/Module";
 import { registerPost } from "../../../toolkit/typescript/lib/registerPath";
-import { ModuleLLM, ModuleLLMAskOptions, ModuleLLMChatOptions, ModuleType } from "../../../toolkit/typescript/types";
+import { ModuleLLM, ModuleLLMAskOptions, ModuleLLMChatMessage, ModuleLLMChatOptions, ModuleType } from "../../../toolkit/typescript/types";
 
 export default class ModuleOpenAI extends Module implements ModuleLLM {
   type = "llm" as ModuleType;
@@ -22,14 +24,15 @@ export default class ModuleOpenAI extends Module implements ModuleLLM {
 
   @registerPost("chat")
   async chat(opts: ModuleLLMChatOptions): Promise<string> {
-    console.log("\n\nPrompting GPT4 with:\n", opts.messages);
+    // Log the last message
+    this.#log(opts.messages[opts.messages.length - 1]);
     const res = await this.#api.createChatCompletion({
       model: this.#modelType as string,
       messages: opts.messages
     });
     const data = res.data.choices[0].message?.content!;
-    console.log("\n\nOpenAI returned with:\n", data);
-
+    // Log the response
+    this.#log({ content: data, role: "assistant" });
     return opts.json ? this.#convertToJSON(data) : data;
   }
 
@@ -39,5 +42,13 @@ export default class ModuleOpenAI extends Module implements ModuleLLM {
     } catch (e) {
       this.toolkit.ui.error("llm", `Failed to parse JSON from OpenAI:\n\n${data}`);
     }
+  }
+
+  #log(message: ModuleLLMChatMessage) {
+    // Write to the ./log.txt file
+    fs.appendFileSync(
+      path.resolve(__dirname, "./log.txt"),
+      JSON.stringify(message, null, 2) + "\n====================\n"
+    );
   }
 }

@@ -27,12 +27,12 @@ export default class extends Module implements ModuleMemory {
 
   async initialize() {
     await createModels(this.db);
-    this.toolkit.ui.inform("Database initialized");
+    this.toolkit.ui.debug("Memory", "Database initialized");
   }
 
   @registerPost("/findById")
   async findById(opts: ModuleMemoryFindByIdOptions): Promise<ModuleMemoryQueryResult> {
-    const res = await this.db(opts.entity).where({ id: opts.id });
+    const [res] = await this.db(opts.entity).where({ id: opts.id });
     return { data: res };
   }
 
@@ -45,14 +45,20 @@ export default class extends Module implements ModuleMemory {
   @registerPost("/create")
   async create(opts: ModuleMemoryCreateOptions): Promise<any> {
     if (!opts.data.id) opts.data.id = uuid();
-    return this.db(opts.entity)
+    const res = await this.db(opts.entity)
       .returning("*")
       .insert(opts.data);
+    return res[0];
   }
 
   @registerPost("/update")
   async update(opts: ModuleMemoryUpdateOptions): Promise<any> {
-    throw new Error("Not Implemented");
+    await this.db(opts.entity)
+      .where({ id: opts.data.id })
+      .returning("*")
+      .update(opts.data);
+    const { data } = await this.findById({ entity: opts.entity, id: opts.data.id });
+    return data
   }
 
   @registerPost("/delete")

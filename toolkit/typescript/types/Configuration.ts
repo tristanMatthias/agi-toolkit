@@ -3,7 +3,7 @@ export type ModuleType =
   "llm" |
   "memory" |
   "planner" |
-  "cli";
+  "agent";
 
 export interface AGIToolkitConfiguration {
   modules: Record<ModuleType, AGIToolkitConfigurationModule>

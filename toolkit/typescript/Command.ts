@@ -6,10 +6,10 @@ export type CommandConstructor = new (tk: Toolkit) => Command;
 
 export class Command {
   name: string;
-
+  label: string;
   args: Record<string, any> = {};
 
-  constructor(private tk: Toolkit) {}
+  constructor(protected tk: Toolkit) {}
 
   run(args: object) {
     throw new Error("Not implemented");

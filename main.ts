@@ -1,4 +1,5 @@
-import { WriteFile } from "./commands/file-system";
+import * as fileSystem from "./commands/file-system";
+import BrowseWeb from "./modules/browser/browser.command";
 import Configuration from "./toolkit/typescript/Configuration";
 import { Toolkit } from "./toolkit/typescript/Toolkit";
 
@@ -7,9 +8,13 @@ import { Toolkit } from "./toolkit/typescript/Toolkit";
   const toolkit = new Toolkit(process.env.HOST!, configuration);
   await toolkit.initialize();
 
-  toolkit.registerCommand(WriteFile);
+  // TODO: Convert to importing agi.module.yml files
+  for (const command of Object.values(fileSystem)) {
+    toolkit.registerCommand(command);
+  }
+  toolkit.registerCommand(BrowseWeb);
 
   toolkit
-    .module("cli")
+    .module("agent")
     .mainLoop();
 })();

@@ -24,8 +24,8 @@ export default class Configuration implements AGIToolkitConfiguration {
     planner: {
       uri: path.resolve(__dirname, "../../modules/planner/TreePlanner")
     },
-    cli: {
-      uri: path.resolve(__dirname, "../../modules/cli")
+    agent: {
+      uri: path.resolve(__dirname, "../../modules/agent")
     }
   }
 

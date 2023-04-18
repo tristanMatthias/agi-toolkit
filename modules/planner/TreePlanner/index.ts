@@ -57,7 +57,7 @@ export default class TreePlanner extends Module implements ModulePlanner {
 
   @registerPost("/completeTask")
   async completeTask({ taskId }: ModulePlannerCompleteTaskOptions) {
-    const task = await this.memory.findById({ entity: "task", id: taskId });
+    const { data: task } = await this.memory.findById({ entity: "task", id: taskId });
     task.completed = true;
 
     await this.memory.update({
@@ -65,19 +65,19 @@ export default class TreePlanner extends Module implements ModulePlanner {
       data: task
     });
 
-    this.toolkit.ui.success(`Completed task: ${task.description.slice(0, 20)}...`);
+    this.toolkit.ui.success(`Completed task: ${task.description.slice(0, 100)}...`);
 
-    if (task.parentTaskId) {
-      // Check if each subtask is completed
-      const { data: subtasks } = await this.memory.query({
-        entity: "task",
-        query: { parentTaskId: task.parentTaskId }
-      });
+    // if (task.parentTaskId) {
+    //   // Check if each subtask is completed
+    //   const { data: subtasks } = await this.memory.query({
+    //     entity: "task",
+    //     query: { parentTaskId: task.parentTaskId }
+    //   });
 
-      // If all subtasks are completed, complete the parent task
-      if (subtasks.every(subtask => subtask.completed)) {
-        await this.completeTask(task.parentTaskId);
-      }
-    }
+    //   // If all subtasks are completed, complete the parent task
+    //   if (subtasks.every(subtask => subtask.completed)) {
+    //     await this.completeTask(task.parentTaskId);
+    //   }
+    // }
   }
 }

@@ -98,7 +98,7 @@ async function clarifyUntilResult(
   if (plan.type != "ask") return plan;
 
   // Get user's feedback on the plan
-  tk.ui.say("Planner", `I am not sure what to do next. Please help me by answering the following question:\n${plan.question}`);
+  await tk.ui.say("Planner", `I am not sure what to do next. Please help me by answering the following question:\n${plan.question}`);
 
   const { clarification } = await tk.ui.prompt({
     name: "clarification",
