@@ -1,4 +1,4 @@
-import { Module } from "../../../toolkit/typescript/Module";
+import { Module } from "../../../toolkit/typescript/Module/Module";
 import { registerPost } from "../../../toolkit/typescript/lib/registerPath";
 import {
   ModulePlanner,

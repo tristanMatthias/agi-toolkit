@@ -1,6 +1,6 @@
 import knex from "knex";
 import { v4 as uuid } from "uuid";
-import { Module } from "../../../toolkit/typescript/Module";
+import { Module } from "../../../toolkit/typescript/Module/Module";
 import { registerPost } from '../../../toolkit/typescript/lib/registerPath';
 import {
   ModuleMemory,

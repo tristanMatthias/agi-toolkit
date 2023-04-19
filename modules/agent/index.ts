@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { Module } from "../../toolkit/typescript/Module";
+import { Module } from "../../toolkit/typescript/Module/Module";
 import { ModulePlannerTask, ModuleType } from "../../toolkit/typescript/types";
 import { ModuleAgent, ModuleAgentAgent } from "../../toolkit/typescript/types/ModuleAgent";
 import loop from "./loop";

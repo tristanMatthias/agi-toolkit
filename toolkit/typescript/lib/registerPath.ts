@@ -3,7 +3,7 @@
 */
 
 import { Request, Response } from "express";
-import { Module } from "../Module";
+import { Module } from "../Module/Module";
 
 export function registerPost(path: string) {
   return function (target: Object, propertyKey: string, descriptor?: PropertyDescriptor) {

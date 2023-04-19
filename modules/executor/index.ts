@@ -1,4 +1,4 @@
-import { Module } from "../../toolkit/typescript/Module";
+import { Module } from "../../toolkit/typescript/Module/Module";
 import { ModuleExecutor, ModuleExecutorExecuteCommandOpts, ModulePlannerTask, ModuleType } from "../../toolkit/typescript/types";
 import executeTask from "./executeTask";
 

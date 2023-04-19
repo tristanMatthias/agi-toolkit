@@ -1,4 +1,4 @@
-import { Module } from "../Module"
+import { Module } from "../Module/Module"
 
 export interface ModulePlanner extends Module {
   // Create a new task

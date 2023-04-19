@@ -2,7 +2,7 @@ import chalk from "chalk";
 import express from "express";
 import { Command, CommandConstructor } from "./Command";
 import Config from "./Configuration";
-import { Module } from "./Module";
+import { Module } from "./Module/Module";
 import { Shell } from "./Shell";
 import * as defaultCommands from "./commands";
 import { ModuleExecutor, ModuleLLM, ModuleMemory, ModulePlanner, ModuleType } from "./types";
