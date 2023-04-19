@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Toolkit } from '../Toolkit';
 import { ModuleType } from '../types';
-import { Command } from '../Command';
+import { Command } from '../command/Command';
 
 export class Module {
   public name: string;

@@ -1,4 +1,4 @@
-import { Command } from "../../toolkit/typescript/Command";
+import { Command } from "../../toolkit/typescript/command/Command";
 
 interface TaskStatusArgs {
   taskId: string;
