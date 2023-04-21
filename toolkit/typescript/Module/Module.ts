@@ -1,23 +1,17 @@
-import axios from 'axios';
-import { Toolkit } from '../Toolkit';
+import { Container } from '../Container';
+import { RegistryModuleParametersMetadata } from '../Registry';
+import { Command } from '../Command/Command';
 import { ModuleType } from '../types';
-import { Command } from '../command/Command';
 
-export class Module {
+export class Module<Config = Record<string, any>> {
   public name: string;
   public type: ModuleType;
-  #commands: Command[] = [];
+  public methods: RegistryModuleParametersMetadata = {};
+  public commands: Command[] = [];
 
-  constructor(public basePath: string, public toolkit: Toolkit) { }
+  constructor(public container: Container, protected config?: Config) { }
 
-  protected addCommand(command: Command) {
-    this.#commands.push(command);
-  }
-
-  async initialize(): Promise<any> {}
-
-  protected async request(path: string, data?: any) {
-    const res = await axios.post(`${this.basePath}/${path}`, data);
-    return res.data;
+  async initialize(): Promise<any> {
+    await Promise.all(this.commands.map(command => command.initialize()));
   }
 }

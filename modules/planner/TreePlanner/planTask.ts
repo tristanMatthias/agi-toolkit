@@ -1,7 +1,8 @@
 import fs from 'fs';
-import { Toolkit } from '../../../toolkit/typescript/Toolkit';
-import { replaceVariables } from '../../../toolkit/typescript/lib/replaceVariables';
-import { ModuleLLMChatMessage, ModuleMemory, ModulePlanner, ModulePlannerTask } from '../../../toolkit/typescript/types';
+import { replaceVariables } from '@agi-toolkit//lib/replaceVariables';
+import { ModuleLLM, ModuleLLMChatMessage, ModuleMemory, ModulePlanner, ModulePlannerTask } from '@agi-toolkit//types';
+import buildCommandList from '../../agent/buildCommandList';
+import { Container } from '@agi-toolkit//Container';
 
 const promptPlan = fs.readFileSync(__dirname + "/plan.prompt.txt", "utf8");
 
@@ -16,9 +17,9 @@ type LLMResponse =
 
 
 export async function planTask(parentTaskId: string, planner: ModulePlanner): Promise<ModulePlannerTask[]> {
-  const llm = planner.toolkit.module("llm");
-  const memory = planner.toolkit.module("memory");
-  const commands = planner.toolkit.getCommandListString();
+  const llm = planner.container.module<ModuleLLM>("llm");
+  const memory = planner.container.module<ModuleMemory>("memory");
+  const commands = buildCommandList(planner.container.manifest!);
   const { data: [parentTask] } = await memory.findById({ entity: "task", id: parentTaskId });
 
   const hierarchy = await getHierarchy(parentTask, memory);
@@ -36,7 +37,7 @@ export async function planTask(parentTaskId: string, planner: ModulePlanner): Pr
     plan = await clarifyUntilResult(plan, [
       { content: prompt, role: "user" },
       { content: JSON.stringify(plan), role: "assistant" },
-    ], planner.toolkit);
+    ], planner.container);
   }
 
   const result: ModulePlannerTask[] = [];
@@ -91,16 +92,16 @@ async function getHierarchy(task: ModulePlannerTask, memory: ModuleMemory): Prom
 async function clarifyUntilResult(
   plan: LLMResponse,
   messageHistory: ModuleLLMChatMessage[],
-  tk: Toolkit
+  container: Container
 ): Promise<LLMResponse> {
 
   // If we get a plan, return it
   if (plan.type != "ask") return plan;
 
   // Get user's feedback on the plan
-  await tk.ui.say("Planner", `I am not sure what to do next. Please help me by answering the following question:\n${plan.question}`);
+  await container.ui.say("Planner", `I am not sure what to do next. Please help me by answering the following question:\n${plan.question}`);
 
-  const { clarification } = await tk.ui.prompt({
+  const { clarification } = await container.ui.prompt({
     name: "clarification",
     message: `Feedback:`
   });
@@ -110,9 +111,9 @@ async function clarifyUntilResult(
     ...messageHistory,
     { content: clarification, role: "user" }
   ];
-  const res = (await tk.module("llm").chat({ messages, json: true })) as LLMResponse;
+  const res = (await container.module<ModuleLLM>("llm").chat({ messages, json: true })) as LLMResponse;
 
   // If LLM asks a clarifying question, continue clarifying until we get a plan/error
   messages.push({ content: JSON.stringify(res), role: "assistant" });
-  return clarifyUntilResult(res, messages, tk);
+  return clarifyUntilResult(res, messages, container);
 }

@@ -1,2 +1,2 @@
-modules:
-  - index.ts
+name: agent
+entry: ./Agent.module

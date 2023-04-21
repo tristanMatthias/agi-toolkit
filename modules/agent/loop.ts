@@ -1,10 +1,11 @@
 import chalk from "chalk";
 import fs from "fs";
 import spin from 'ora';
-import { Toolkit } from "../../toolkit/typescript/Toolkit";
-import { replaceVariables } from "../../toolkit/typescript/lib/replaceVariables";
-import { ModuleExecutor, ModuleLLMChatMessage, ModulePlannerTask } from "../../toolkit/typescript/types";
-import { ModuleAgentAgent } from "../../toolkit/typescript/types/ModuleAgent";
+import { Container } from "@agi-toolkit/Container";
+import { replaceVariables } from "@agi-toolkit/lib/replaceVariables";
+import { ModuleExecutor, ModuleLLM, ModuleLLMChatMessage, ModulePlannerTask } from "@agi-toolkit/types";
+import { ModuleAgentAgent } from "@agi-toolkit/types/ModuleAgent";
+import buildCommandList from "./buildCommandList";
 
 // Import promptLoops.txt
 const promptLoop = fs.readFileSync(__dirname + "/loop.prompt.txt", "utf8");
@@ -32,7 +33,7 @@ interface LoopResponse {
   command: Command
 };
 
-export default async function (tk: Toolkit, agent: ModuleAgentAgent, tasks: ModulePlannerTask[]) {
+export default async function (container: Container, agent: ModuleAgentAgent, tasks: ModulePlannerTask[]) {
   /**
    * 1. Tell it objective
    * 2. It generates it's thoughts/plan/criticism etc
@@ -42,14 +43,14 @@ export default async function (tk: Toolkit, agent: ModuleAgentAgent, tasks: Modu
    */
 
   const taskList = tasks.map(t => ` - ${t.description}`).join("\n");
-  await tk.ui.say(agent.name, `Starting work on these tasks:\n${taskList}`);
+  await container.ui.say(agent.name, `Starting work on these tasks:\n${taskList}`);
 
-  const llm = tk.module("llm");
-  const executor = tk.module("executor");
+  const llm = container.module<ModuleLLM>("llm");
+  const executor = container.module<ModuleExecutor>("executor");
 
   // Turn goals into a numbered list
   const goalList = tasks.map((task, i) => `${i + 1}. (ID=${task.id}) ${task.description}`).join("\n");
-  const commands = tk.getCommandListString();
+  const commands = buildCommandList(container.manifest!);
   const messages: ModuleLLMChatMessage[] = [];
 
   // Set initial message to LLM
@@ -88,10 +89,10 @@ export default async function (tk: Toolkit, agent: ModuleAgentAgent, tasks: Modu
       // If we can't parse the response, try again
       parseAttempts++;
       if (parseAttempts > maxParseAttempts) {
-        tk.ui.error("System", `Error parsing response from LLM. Max attempts reached. Exiting…`);
+        container.ui.error("System", `Error parsing response from LLM. Max attempts reached. Exiting…`);
         return false;
       }
-      tk.ui.error("System", `Error parsing response from LLM. Trying again… (Attempt: ${parseAttempts} / ${maxParseAttempts})`);
+      container.ui.error("System", `Error parsing response from LLM. Trying again… (Attempt: ${parseAttempts} / ${maxParseAttempts})`);
       messages.push({
         role: "user",
         content: "This response does not contain valid JSON. Please reformat it so it's parsable with JSON.parse()"
@@ -100,19 +101,19 @@ export default async function (tk: Toolkit, agent: ModuleAgentAgent, tasks: Modu
     }
 
     const { thoughts, command } = res;
-    await tk.ui.say(chalk.yellow("Thoughts"), thoughts.text);
-    await tk.ui.say(chalk.yellow("Reasoning"), thoughts.reasoning);
-    await tk.ui.say(chalk.yellow("Plan\n"), thoughts.plan);
-    await tk.ui.say(chalk.yellow("Criticism"), thoughts.criticism);
+    await container.ui.say(chalk.yellow("Thoughts"), thoughts.text);
+    await container.ui.say(chalk.yellow("Reasoning"), thoughts.reasoning);
+    await container.ui.say(chalk.yellow("Plan\n"), thoughts.plan);
+    await container.ui.say(chalk.yellow("Criticism"), thoughts.criticism);
 
     let result: string = "No feedback";
     // If command is defined, run it
     if (command?.name) {
-      result = await runCommand(tk, agent, executor, command, messages);
+      result = await runCommand(container, agent, executor, command, messages);
 
       // Otherwise, ask for feedback (if any)
     } else {
-      const { feedback } = await tk.ui.prompt({
+      const { feedback } = await container.ui.prompt({
         type: "input",
         name: "feedback",
         message: "Do you have any feedback for the agent? (Leave blank if not)"
@@ -134,7 +135,7 @@ const convertArgsToList = (args: { [key: string]: string }) =>
 
 
 const runCommand = async (
-  tk: Toolkit,
+  container: Container,
   agent: ModuleAgentAgent,
   executor: ModuleExecutor,
   command: Command,
@@ -152,12 +153,12 @@ const runCommand = async (
       //   break;
 
       default:
-        await tk.ui.say(
+        await container.ui.say(
           agent.name,
           `I want to run the ${chalk.yellow(name)} command with arguments:\n${convertArgsToList(command.args)}`
         );
 
-        const { response } = await tk.ui.prompt({
+        const { response } = await container.ui.prompt({
           type: "input",
           name: "response",
           message: [
@@ -176,7 +177,7 @@ const runCommand = async (
           // Command was allowed
         } else if (allowed) {
           res = await executor.executeCommand(command);
-          await tk.ui.say(agent.name, `I successfully ran the ${chalk.yellow(name)} command`);
+          await container.ui.say(agent.name, `I successfully ran the ${chalk.yellow(name)} command`);
           // Push message back to LLM
           return `Command ${name} ran successfully with result:\n${res}`;
 
@@ -187,7 +188,7 @@ const runCommand = async (
     }
 
   } catch (e) {
-    tk.ui.error(
+    container.ui.error(
       "Executor",
       `Error while running command ${chalk.yellow(command.name)}:\n\n${chalk.redBright((e as Error).message)}\n`
     );

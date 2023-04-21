@@ -1,20 +1,27 @@
-import * as fileSystem from "./commands/file-system";
-import BrowseWeb from "./modules/browser/browser.command";
-import Configuration from "./toolkit/typescript/Configuration";
-import { Toolkit } from "./toolkit/typescript/Toolkit";
+import { RegistryConfiguration } from "@agi-toolkit/Registry";
 
-(async() => {
-  const configuration = new Configuration();
-  const toolkit = new Toolkit(process.env.HOST!, configuration);
-  await toolkit.initialize();
+new RegistryConfiguration(
+  "./examples/from-config/agi.config.yml"
+).createAndStart();
 
-  // TODO: Convert to importing agi.module.yml files
-  for (const command of Object.values(fileSystem)) {
-    toolkit.registerCommand(command);
-  }
-  toolkit.registerCommand(BrowseWeb);
+// ================================================================ The Old way:
 
-  toolkit
-    .module("agent")
-    .mainLoop();
-})();
+// import ModuleAgent from "./modules/agent/Agent.module";
+// import { ContainerConfiguration } from "@agi-toolkit/Container/ContainerConfiguration";
+// import { Registry } from "@agi-toolkit/Registry";
+
+// (async() => {
+//   await new Registry({
+//     requiredModules: ['core', 'agent', 'llm']
+//   }).start();
+
+//   const config = new ContainerConfiguration();
+//   const agent = await config.initialize();
+
+//   await agent.ready();
+
+//   agent
+//     .module<ModuleAgent>("agent")
+//     .mainLoop();
+// })();
+// =============================================================================

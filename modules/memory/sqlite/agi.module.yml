@@ -1,0 +1,6 @@
+name: memory
+entry: SQLiteMemory.module
+settings:
+  database:
+    type: string
+    required: true

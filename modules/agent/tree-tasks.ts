@@ -1,13 +1,13 @@
 // NOTE: This is deprecated code. It is here for reference only.
 
-import ModuleAgent from './';
+import ModuleAgent from './Agent.module';
 
 export default async function (agentModule: ModuleAgent) {
   // Outer loop for top level task selection/creation
   while (true) {
     let topLevelTask = await agentModule.selectTaskToResume();
     if (!topLevelTask) {
-      await agentModule.toolkit.ui.say("Executor", "I currently have no tasks to work on. Let's create one!");
+      await agentModule.container.ui.say("Executor", "I currently have no tasks to work on. Let's create one!");
       topLevelTask = await agentModule.createTopLevelTasks();
     }
 
@@ -18,7 +18,7 @@ export default async function (agentModule: ModuleAgent) {
       const action = await agentModule.getNextActionFromTree(tree);
 
       if (!action) {
-        agentModule.toolkit.ui.success("All tasks completed!");
+        agentModule.container.ui.success("All tasks completed!");
         break;
       }
 
@@ -27,11 +27,11 @@ export default async function (agentModule: ModuleAgent) {
           try {
             await agentModule.planner.planTask({ taskId: action.task.id });
           } catch (e) {
-            agentModule.toolkit.ui.error(
+            agentModule.container.ui.error(
               "Executor",
               `Sorry, I ran into an error while planning that task with the message:\n\n${chalk.redBright((e as Error).message)}\n`
             );
-            agentModule.toolkit.ui.inform("Returning to top level task selection…\n\n");
+            agentModule.container.ui.inform("Returning to top level task selection…\n\n");
             break innerLoop;
           }
           break;

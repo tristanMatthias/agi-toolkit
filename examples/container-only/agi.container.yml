@@ -1,0 +1,16 @@
+registryUrl: http://localhost:3000
+modules:
+  core: './modules/core'
+  agent: './modules/agent'
+  executor: './modules/executor'
+  planner: './modules/planner/TreePlanner'
+  llm:
+    from: './modules/llm/openai'
+    settings:
+      apiKey: ${OPENAI_API_KEY}
+      model: gpt-3.5-turbo
+  memory:
+    from: './modules/memory/sqlite'
+    settings:
+      database: memory.db
+

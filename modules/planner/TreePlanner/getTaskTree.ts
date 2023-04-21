@@ -1,4 +1,4 @@
-import { ModuleMemory, ModuleMemoryQueryResult, ModulePlannerTask } from "../../../toolkit/typescript/types";
+import { ModuleMemory, ModuleMemoryQueryResult, ModulePlannerTask } from "@agi-toolkit//types";
 
 type Task = ModulePlannerTask;
 

@@ -1,0 +1,9 @@
+name: llm
+entry: LLM.module
+settings:
+  apiKey:
+    type: string
+    required: true
+  model:
+    type: string
+    default: gpt-4

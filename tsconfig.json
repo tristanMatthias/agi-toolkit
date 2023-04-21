@@ -1,9 +1,12 @@
 {
   "include": [
+    "./*.ts",
+    "examples/**/*",
     "modules/**/*",
     "toolkit/**/*",
   ],
   "compilerOptions": {
+    "baseUrl": "./",
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
@@ -13,6 +16,16 @@
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "paths": {
+      "@modules/*": ["modules/*"],
+      "@agi-toolkit/*": ["toolkit/typescript/*"],
+    }
+  },
+  "ts-node": {
+    // Do not forget to `npm i -D tsconfig-paths`
+    "require": [
+      "tsconfig-paths/register"
+    ]
   }
 }

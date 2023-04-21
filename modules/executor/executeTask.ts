@@ -1,7 +1,7 @@
-import { Toolkit } from "../../toolkit/typescript/Toolkit";
-import { ModulePlannerTask } from "../../toolkit/typescript/types";
+import { Container } from "@agi-toolkit/Container";
+import { ModulePlannerTask } from "@agi-toolkit/types";
 
-export default async function(task: ModulePlannerTask, tk: Toolkit) {
+export default async function(task: ModulePlannerTask, container: Container) {
   if (task.completed) return null;
   if (task.children.every(child => child.completed)) return null;
 
@@ -14,7 +14,6 @@ export default async function(task: ModulePlannerTask, tk: Toolkit) {
   const commandName = command[1];
   const commandArgs = command[2].split(",").map(arg => arg.trim());
 
-  // Get command function from toolkit
-  const res = await tk.runCommand(commandName, commandArgs);
-  return res;
+  // Get command function from Container
+  return container.command(commandName, commandArgs);
 }
