@@ -1,7 +1,5 @@
 // TODO: Some of these methods could be up for deletion
 
-import chalk from "chalk";
-import inquirer from "inquirer";
 import { Module } from "@agi-toolkit/Module/Module";
 import {
   ModuleExecutor,
@@ -12,9 +10,11 @@ import {
   ModuleType
 } from "@agi-toolkit/types";
 import { ModuleAgent, ModuleAgentAgent } from "@agi-toolkit/types/ModuleAgent";
-import loop from "./loop";
-import { Command } from "@agi-toolkit/Command/Command";
+import chalk from "chalk";
+import inquirer from "inquirer";
+import buildCommandList from "./buildCommandList";
 import { TaskStatus } from "./commands/task-status.command";
+import loop from "./loop";
 
 type Action =
   { type: "plan", task: ModulePlannerTask } |
@@ -41,6 +41,9 @@ export default class extends Module implements ModuleAgent {
   }
 
   async mainLoop() {
+    const commands = buildCommandList(this.container.manifest!);
+    await this.container.ui.debug("Agent", `I can perform the following commands:\n${commands}`);
+
     const { agent, tasks } = await this.setup();
     await loop(this.container, agent, tasks);
     await this.container.ui.say(agent.name, "Goodbye!");

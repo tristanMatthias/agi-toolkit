@@ -27,3 +27,4 @@ Response Format:
 }
 
 Ensure the response can be parsed by Node.js JSON.parse().
+Do not ever apologize. You must only return valid JSON.

@@ -38,7 +38,13 @@ export class CommandListFiles extends Command {
   name = 'list-files';
   args = { path: '<path to the directory to list>' };
   async run(args: { path: string; }) {
-    return fs.readdirSync(getSafePath(args.path));
+    // List all files and directories in the given path
+    const basePath = getSafePath(args.path);
+    return fs.readdirSync(basePath).map((p) => {
+      const fullPath = path.join(basePath, p);
+      if (fs.statSync(fullPath).isDirectory()) return `${p}/`;
+      else return p;
+    }).join('\n');
   }
 }
 

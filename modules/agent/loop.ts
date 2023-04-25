@@ -1,11 +1,12 @@
-import chalk from "chalk";
-import fs from "fs";
-import spin from 'ora';
 import { Container } from "@agi-toolkit/Container";
 import { replaceVariables } from "@agi-toolkit/lib/replaceVariables";
 import { ModuleExecutor, ModuleLLM, ModuleLLMChatMessage, ModulePlannerTask } from "@agi-toolkit/types";
 import { ModuleAgentAgent } from "@agi-toolkit/types/ModuleAgent";
+import chalk from "chalk";
+import fs from "fs";
+import spin from 'ora';
 import buildCommandList from "./buildCommandList";
+import { parseJSON } from "./parseJSON";
 
 // Import promptLoops.txt
 const promptLoop = fs.readFileSync(__dirname + "/loop.prompt.txt", "utf8");
@@ -51,6 +52,7 @@ export default async function (container: Container, agent: ModuleAgentAgent, ta
   // Turn goals into a numbered list
   const goalList = tasks.map((task, i) => `${i + 1}. (ID=${task.id}) ${task.description}`).join("\n");
   const commands = buildCommandList(container.manifest!);
+
   const messages: ModuleLLMChatMessage[] = [];
 
   // Set initial message to LLM
@@ -82,7 +84,7 @@ export default async function (container: Container, agent: ModuleAgentAgent, ta
 
     // Try to parse response from LLM
     try {
-      res = JSON.parse(resString);
+      res = parseJSON(resString);
       // Reset attempts after successful loop
       parseAttempts = 0;
     } catch (e) {
