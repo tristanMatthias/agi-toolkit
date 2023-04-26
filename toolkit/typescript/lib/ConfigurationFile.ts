@@ -1,9 +1,11 @@
+import chalk from "chalk";
+import dotenv from "dotenv";
 import fs from "fs";
 import Joi from "joi";
+import yaml from "js-yaml";
 import path from "path";
 import { Shell } from "./Shell";
-import chalk from "chalk";
-import yaml from "js-yaml";
+dotenv.config();
 
 export interface ConfigurationFileOptions {
   type: string;
@@ -36,6 +38,8 @@ export class ConfigurationFile<Config = any> {
     let data: string;
     try {
       data = fs.readFileSync(this.filePath, 'utf8');
+      // Replace any environment variables
+      data = data.replace(/\$\{([^\}]+)\}/g, (_, name) => process.env[name] || '');
     } catch (e) {
       this.ui.error(
         this.constructor.name,

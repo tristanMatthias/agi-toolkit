@@ -6,7 +6,7 @@ const typeWriter = async (text?: string, prefix?: string) => {
   if (prefix) process.stdout.write(prefix);
   for (let i = 0; i < text.length; i++) {
     process.stdout.write(text.charAt(i));
-    await new Promise(resolve => setTimeout(resolve, 15));
+    await new Promise(resolve => setTimeout(resolve, 5));
   }
   process.stdout.write('\n');
 }

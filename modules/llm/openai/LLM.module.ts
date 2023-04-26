@@ -1,13 +1,15 @@
-import fs from "fs";
-import * as OpenAI from "openai";
-import path from "path";
 import { Container } from "@agi-toolkit//Container";
 import { Module } from "@agi-toolkit//Module/Module";
 import { ModuleLLM, ModuleLLMAskOptions, ModuleLLMChatMessage, ModuleLLMChatOptions, ModuleType } from "@agi-toolkit//types";
+import fs from "fs";
+import * as OpenAI from "openai";
+import path from "path";
+import { truncateHistoryToTokenSize } from "./tokens";
 
 interface ModuleOpenAIConfig {
   apiKey: string;
   model: string;
+  tokenLimit: number;
 }
 
 export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements ModuleLLM {
@@ -17,7 +19,7 @@ export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements 
   #modelType: string;
   #api: OpenAI.OpenAIApi;
 
-  constructor(container: Container, config: ModuleOpenAIConfig) {
+  constructor(container: Container, protected config: ModuleOpenAIConfig) {
     super(container);
     this.#config = new OpenAI.Configuration({
       apiKey: config.apiKey
@@ -34,11 +36,12 @@ export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements 
   }
 
   async chat(opts: ModuleLLMChatOptions): Promise<string> {
+    const messages = await truncateHistoryToTokenSize(opts.messages, this.config!.tokenLimit);
     // Log the last message
     this.#log(opts.messages[opts.messages.length - 1]);
     const res = await this.#api.createChatCompletion({
       model: this.#modelType as string,
-      messages: opts.messages
+      messages
     });
     const data = res.data.choices[0].message?.content!;
     // Log the response

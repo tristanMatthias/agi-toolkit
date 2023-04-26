@@ -17,6 +17,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
+    "resolveJsonModule": true,
     "paths": {
       "@modules/*": ["modules/*"],
       "@agi-toolkit/*": ["toolkit/typescript/*"],

@@ -56,5 +56,11 @@ export class RegistryConfiguration extends ConfigurationFile<RegistryConfigurati
       const module = commandContainer.module<any>(moduleName);
       return module[methodName]();
     }
+
+    this.shutdown();
+  }
+
+  shutdown() {
+    process.exit(0);
   }
 }

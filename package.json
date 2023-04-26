@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.6",
     "axios": "^1.3.5",
     "chalk": "4",
     "clear": "^0.1.0",
