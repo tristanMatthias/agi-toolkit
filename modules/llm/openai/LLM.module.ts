@@ -58,9 +58,9 @@ export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements 
   }
 
   #log(message: ModuleLLMChatMessage) {
-    // Write to the ./log.txt file
+    // Write to the ./chat.log file
     fs.appendFileSync(
-      path.resolve(__dirname, "./log.txt"),
+      path.resolve(process.cwd(), "./chat.log"),
       JSON.stringify(message, null, 2) + "\n====================\n"
     );
   }
