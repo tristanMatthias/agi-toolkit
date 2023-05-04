@@ -6,7 +6,7 @@ import chalk from "chalk";
 import fs from "fs";
 import spin from 'ora';
 import buildCommandList from "./buildCommandList";
-import { parseJSON } from "./parseJSON";
+import { parseJSON } from "./lib/parseJSON";
 
 // Import promptLoops.txt
 const promptLoop = fs.readFileSync(__dirname + "/loop.prompt.txt", "utf8");
