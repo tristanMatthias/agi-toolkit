@@ -34,8 +34,8 @@ export class CommandWriteFile extends Command {
   }
 }
 
-export class CommandListFiles extends Command {
-  name = 'list-files';
+export class CommandReadDirectory extends Command {
+  name = 'read-directory';
   args = { path: '<path to the directory to list>' };
   async run(args: { path: string; }) {
     // List all files and directories in the given path

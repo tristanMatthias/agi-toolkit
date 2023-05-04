@@ -6,7 +6,7 @@ export default class CoreModule extends Module {
   commands = [
     new cmd.CommandReadFile(this.container),
     new cmd.CommandWriteFile(this.container),
-    new cmd.CommandListFiles(this.container),
+    new cmd.CommandReadDirectory(this.container),
     new cmd.CommandCompleteTask(this.container),
   ]
 }
