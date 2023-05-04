@@ -20,7 +20,7 @@ export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements 
   #api: OpenAI.OpenAIApi;
 
   constructor(container: Container, protected config: ModuleOpenAIConfig) {
-    super(container);
+    super(container, config);
     this.#config = new OpenAI.Configuration({
       apiKey: config.apiKey
     });
@@ -39,9 +39,11 @@ export default class ModuleOpenAI extends Module<ModuleOpenAIConfig> implements 
     const messages = await truncateHistoryToTokenSize(opts.messages, this.config!.tokenLimit);
     // Log the last message
     this.#log(opts.messages[opts.messages.length - 1]);
+
     const res = await this.#api.createChatCompletion({
       model: this.#modelType as string,
-      messages
+      messages,
+      temperature: 0.2
     });
     const data = res.data.choices[0].message?.content!;
     // Log the response

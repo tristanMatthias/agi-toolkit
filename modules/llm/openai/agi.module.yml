@@ -7,6 +7,8 @@ settings:
   model:
     type: string
     default: gpt-4
+    required: true
   tokenLimit:
     type: number
     default: 2500
+    required: true

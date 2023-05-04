@@ -1,4 +1,5 @@
 import joi from 'joi';
+import _ from 'lodash';
 import path from 'path';
 import { Container } from '../Container';
 import { ConfigurationFile } from '../lib/ConfigurationFile';
@@ -18,6 +19,7 @@ const configFileSchema = joi.object().keys({
 });
 
 export class ModuleConfiguration extends ConfigurationFile<ModuleConfigurationFile> {
+  private defaultSettings: Record<string, any>;
   private settingsSchema: joi.Schema;
   private module: Constructor<Module>;
 
@@ -33,6 +35,7 @@ export class ModuleConfiguration extends ConfigurationFile<ModuleConfigurationFi
 
   protected loadSchemaAndModule() {
     this.settingsSchema = this.buildSettingsSchema(this.config.settings);
+    this.defaultSettings = this.getDefaultSettings(this.config.settings);
     const moduleDir = path.dirname(this.filePath);
     const entryPath = path.resolve(moduleDir, this.config.entry);
     const res = require(entryPath);
@@ -55,10 +58,21 @@ export class ModuleConfiguration extends ConfigurationFile<ModuleConfigurationFi
     return joi.object().keys(keys);
   }
 
+  getDefaultSettings(settings?: ModuleConfigurationFile['settings']) {
+    if (!settings) return {};
+    const defaults: Record<string, any> = {};
+    for (const [name, setting] of Object.entries(settings)) {
+      const { default: defaultValue } = setting;
+      if (defaultValue) defaults[name] = defaultValue;
+    }
+    return defaults;
+  }
+
   initialize(args: Record<string, any>) {
-    const { error } = this.settingsSchema.validate(args);
+    const mergedSettings = _.merge({}, this.defaultSettings, args);
+    const { error } = this.settingsSchema.validate(mergedSettings);
     this.handleValidationError(error);
-    return new this.module(this.container, args);
+    return new this.module(this.container, mergedSettings);
   }
 }
 
