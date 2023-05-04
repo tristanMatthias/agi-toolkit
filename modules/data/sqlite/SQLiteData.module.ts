@@ -3,27 +3,27 @@ import { v4 as uuid } from "uuid";
 import { Container } from "@agi-toolkit//Container";
 import { Module } from "@agi-toolkit//Module/Module";
 import {
-  ModuleMemory,
-  ModuleMemoryCreateOptions,
-  ModuleMemoryDeleteOptions,
-  ModuleMemoryFindByIdOptions,
-  ModuleMemoryQueryOptions,
-  ModuleMemoryQueryResult,
-  ModuleMemorySizeOptions,
-  ModuleMemoryUpdateOptions
+  ModuleData,
+  ModuleDataCreateOptions,
+  ModuleDataDeleteOptions,
+  ModuleDataFindByIdOptions,
+  ModuleDataQueryOptions,
+  ModuleDataQueryResult,
+  ModuleDataSizeOptions,
+  ModuleDataUpdateOptions
 } from "@agi-toolkit//types";
 import createModels from "./createModels";
 
-export interface SQLiteMemoryModuleConfig {
+export interface SQLiteDataModuleConfig {
   database: string;
 }
 
 
-export default class extends Module implements ModuleMemory {
-  name = "memory";
+export default class extends Module implements ModuleData {
+  name = "data";
   db: Knex;
 
-  constructor(container: Container, config: SQLiteMemoryModuleConfig) {
+  constructor(container: Container, config: SQLiteDataModuleConfig) {
     super(container);
     this.db = knex({
       client: "sqlite3",
@@ -35,20 +35,20 @@ export default class extends Module implements ModuleMemory {
   async initialize() {
     await super.initialize();
     await createModels(this.db);
-    this.container.ui.debug("Memory", "Database initialized");
+    this.container.ui.debug("Data", "Database initialized");
   }
 
-  async findById(opts: ModuleMemoryFindByIdOptions): Promise<ModuleMemoryQueryResult> {
+  async findById(opts: ModuleDataFindByIdOptions): Promise<ModuleDataQueryResult> {
     const [res] = await this.db(opts.entity).where({ id: opts.id });
     return { data: res };
   }
 
-  async query(opts: ModuleMemoryQueryOptions): Promise<ModuleMemoryQueryResult> {
+  async query(opts: ModuleDataQueryOptions): Promise<ModuleDataQueryResult> {
     const res = await this.db(opts.entity).where(opts.query);
     return { data: res };
   }
 
-  async create(opts: ModuleMemoryCreateOptions): Promise<any> {
+  async create(opts: ModuleDataCreateOptions): Promise<any> {
     if (!opts.data.id) opts.data.id = uuid();
     const res = await this.db(opts.entity)
       .returning("*")
@@ -56,7 +56,7 @@ export default class extends Module implements ModuleMemory {
     return res[0];
   }
 
-  async update(opts: ModuleMemoryUpdateOptions): Promise<any> {
+  async update(opts: ModuleDataUpdateOptions): Promise<any> {
     await this.db(opts.entity)
       .where({ id: opts.data.id })
       .returning("*")
@@ -65,11 +65,11 @@ export default class extends Module implements ModuleMemory {
     return data
   }
 
-  async delete(opts: ModuleMemoryDeleteOptions): Promise<any> {
+  async delete(opts: ModuleDataDeleteOptions): Promise<any> {
     throw new Error("Not Implemented");
   }
 
-  async size(opts: ModuleMemorySizeOptions): Promise<number> {
+  async size(opts: ModuleDataSizeOptions): Promise<number> {
     const res = await this.db(opts.entity).count("* as count");
     return parseInt(res[0].count as string);
   }

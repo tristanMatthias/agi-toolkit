@@ -1,6 +1,6 @@
 export type ModuleType =
   "executor" |
   "llm" |
-  "memory" |
+  "data" |
   "planner" |
   "agent";

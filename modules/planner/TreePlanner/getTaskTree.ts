@@ -1,10 +1,10 @@
-import { ModuleMemory, ModuleMemoryQueryResult, ModulePlannerTask } from "@agi-toolkit//types";
+import { ModuleData, ModuleDataQueryResult, ModulePlannerTask } from "@agi-toolkit//types";
 
 type Task = ModulePlannerTask;
 
-export default async function (rootTaskId: string, memory: ModuleMemory): Promise<Task> {
+export default async function (rootTaskId: string, data: ModuleData): Promise<Task> {
   async function fetchChildren(parentTaskId: string | null): Promise<Task[]> {
-    const result: ModuleMemoryQueryResult = await memory.query({
+    const result: ModuleDataQueryResult = await data.query({
       entity: 'task',
       query: { parentTaskId },
     });
@@ -20,7 +20,7 @@ export default async function (rootTaskId: string, memory: ModuleMemory): Promis
     return task;
   }
 
-  const { data: [rootTask] } = await memory.findById({ entity: "task", id: rootTaskId });
+  const { data: [rootTask] } = await data.findById({ entity: "task", id: rootTaskId });
   if (!rootTask) throw new Error(`Root task with id ${rootTaskId} not found.`);
   return buildTree(rootTask);
 }

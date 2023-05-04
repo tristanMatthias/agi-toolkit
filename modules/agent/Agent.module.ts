@@ -4,7 +4,7 @@ import { Module } from "@agi-toolkit/Module/Module";
 import {
   ModuleExecutor,
   ModuleLLM,
-  ModuleMemory,
+  ModuleData,
   ModulePlanner,
   ModulePlannerTask,
   ModuleType
@@ -23,7 +23,7 @@ type Action =
 export default class extends Module implements ModuleAgent {
   type = "agent" as ModuleType;
   llm: ModuleLLM;
-  memory: ModuleMemory;
+  data: ModuleData;
   executor: ModuleExecutor;
   planner: ModulePlanner;
   agent?: ModuleAgentAgent;
@@ -35,7 +35,7 @@ export default class extends Module implements ModuleAgent {
   async initialize() {
     await super.initialize();
     this.llm = this.container.module<ModuleLLM>("llm");
-    this.memory = this.container.module<ModuleMemory>("memory");
+    this.data = this.container.module<ModuleData>("data");
     this.executor = this.container.module<ModuleExecutor>("executor");
     this.planner = this.container.module<ModulePlanner>("planner");
   }
@@ -52,7 +52,7 @@ export default class extends Module implements ModuleAgent {
   async setup() {
     const agent = await this.selectAgent();
 
-    let { data: tasks } = await this.memory
+    let { data: tasks } = await this.data
       .query({ entity: "task", query: { completed: false } });
 
     if (!tasks.length) {
@@ -77,7 +77,7 @@ export default class extends Module implements ModuleAgent {
   }
 
   async selectAgent(): Promise<ModuleAgentAgent> {
-    const agents = await this.memory.query({ entity: "agent", query: {} })
+    const agents = await this.data.query({ entity: "agent", query: {} })
     if (!agents.data.length) {
       this.container.ui.inform("Welcome to AGI Toolkit! Let's get started by creating an agent.");
       return this.createAgent();
@@ -118,7 +118,7 @@ export default class extends Module implements ModuleAgent {
       }
     ]);
 
-    const agent = await this.memory.create({
+    const agent = await this.data.create({
       entity: "agent",
       data: { name, role }
     });
@@ -155,7 +155,7 @@ export default class extends Module implements ModuleAgent {
   }
 
   async getTopLevelTasks() {
-    const res = await this.memory.query({
+    const res = await this.data.query({
       entity: "task",
       query: { completed: false, parentTaskId: null },
     });
@@ -179,7 +179,7 @@ export default class extends Module implements ModuleAgent {
 
       if (!description) break;
 
-      const task = await this.memory.create({
+      const task = await this.data.create({
         entity: "task",
         data: { description, completed: false }
       });
@@ -188,7 +188,7 @@ export default class extends Module implements ModuleAgent {
       count += 1;
     }
 
-    const taskSize = await this.memory.size({ entity: "task", query: { completed: false } });
+    const taskSize = await this.data.size({ entity: "task", query: { completed: false } });
     await this.container.ui.say(this.agent.name, `Ok, I created a new task for you! I now have ${taskSize} tasks.`);
     return tasks;
   }

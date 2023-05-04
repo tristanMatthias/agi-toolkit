@@ -1,5 +1,5 @@
-name: memory
-entry: SQLiteMemory.module
+name: data
+entry: SQLiteData.module
 settings:
   database:
     type: string

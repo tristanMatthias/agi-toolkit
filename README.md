@@ -16,7 +16,7 @@ Interface for Q&A style LLM interactions
 - Text/instructions
 
 
-### Memory (`/module/memory`):
+### Data (`/module/data`):
 **Description:**
 Store relevant and important information in long term memory. Uses a vector database to store documents, images, etc.
 

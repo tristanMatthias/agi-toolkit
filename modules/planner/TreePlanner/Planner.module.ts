@@ -1,7 +1,7 @@
 import { Module } from "@agi-toolkit//Module/Module";
 import {
   ModuleLLM,
-  ModuleMemory,
+  ModuleData,
   ModulePlanner,
   ModulePlannerCompleteTaskOptions,
   ModulePlannerCreateTaskOptions,
@@ -18,16 +18,16 @@ import { planTask } from "./planTask";
 export default class TreePlanner extends Module implements ModulePlanner {
   type = "planner" as ModuleType
   llm: ModuleLLM;
-  memory: ModuleMemory;
+  data: ModuleData;
 
   async initialize() {
     await super.initialize();
     this.llm = this.container.module("llm");
-    this.memory = this.container.module("memory");
+    this.data = this.container.module("data");
   }
 
   async createTask(opts: ModulePlannerCreateTaskOptions): Promise<ModulePlannerTask> {
-    return this.memory.create({
+    return this.data.create({
       entity: "task",
       data: {
         completed: false,
@@ -55,14 +55,14 @@ export default class TreePlanner extends Module implements ModulePlanner {
   }
 
   async getTaskTree({ taskId }: ModulePlannerGetTaskTreeOptions) {
-    return getTaskTree(taskId, this.memory);
+    return getTaskTree(taskId, this.data);
   }
 
   async completeTask({ taskId }: ModulePlannerCompleteTaskOptions) {
-    const { data: task } = await this.memory.findById({ entity: "task", id: taskId });
+    const { data: task } = await this.data.findById({ entity: "task", id: taskId });
     task.completed = true;
 
-    await this.memory.update({
+    await this.data.update({
       entity: "task",
       data: task
     });
@@ -71,7 +71,7 @@ export default class TreePlanner extends Module implements ModulePlanner {
 
     // if (task.parentTaskId) {
     //   // Check if each subtask is completed
-    //   const { data: subtasks } = await this.memory.query({
+    //   const { data: subtasks } = await this.data.query({
     //     entity: "task",
     //     query: { parentTaskId: task.parentTaskId }
     //   });

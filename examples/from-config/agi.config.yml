@@ -5,7 +5,7 @@ requiredModules:
   - executor
   - planner
   - llm
-  - memory
+  - data
 command: agent.mainLoop
 containers:
 - modules:
@@ -18,8 +18,8 @@ containers:
       settings:
         apiKey: ${OPENAI_API_KEY}
         model: gpt-4
-    memory:
-      from: './modules/memory/sqlite'
+    data:
+      from: './modules/data/sqlite'
       settings:
-        database: memory.db
+        database: data.db
 

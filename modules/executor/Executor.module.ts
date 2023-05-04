@@ -1,17 +1,17 @@
 import { Module } from "@agi-toolkit/Module/Module";
-import { ModuleExecutor, ModuleExecutorExecuteCommandOpts, ModuleLLM, ModuleMemory, ModulePlanner, ModulePlannerTask, ModuleType } from "@agi-toolkit/types";
+import { ModuleExecutor, ModuleExecutorExecuteCommandOpts, ModuleLLM, ModuleData, ModulePlanner, ModulePlannerTask, ModuleType } from "@agi-toolkit/types";
 import executeTask from "./executeTask";
 
 export default class extends Module implements ModuleExecutor {
   type = "executor" as ModuleType;
 
   llm: ModuleLLM
-  memory: ModuleMemory
+  data: ModuleData
   planner: ModulePlanner
   async initialize() {
     await super.initialize();
     this.llm = this.container.module("llm");
-    this.memory = this.container.module("memory");
+    this.data = this.container.module("data");
     this.planner = this.container.module("planner");
   }
 

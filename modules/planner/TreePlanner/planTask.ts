@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { replaceVariables } from '@agi-toolkit//lib/replaceVariables';
-import { ModuleLLM, ModuleLLMChatMessage, ModuleMemory, ModulePlanner, ModulePlannerTask } from '@agi-toolkit//types';
+import { ModuleLLM, ModuleLLMChatMessage, ModuleData, ModulePlanner, ModulePlannerTask } from '@agi-toolkit//types';
 import buildCommandList from '../../agent/buildCommandList';
 import { Container } from '@agi-toolkit//Container';
 
@@ -18,11 +18,11 @@ type LLMResponse =
 
 export async function planTask(parentTaskId: string, planner: ModulePlanner): Promise<ModulePlannerTask[]> {
   const llm = planner.container.module<ModuleLLM>("llm");
-  const memory = planner.container.module<ModuleMemory>("memory");
+  const data = planner.container.module<ModuleData>("data");
   const commands = buildCommandList(planner.container.manifest!);
-  const { data: [parentTask] } = await memory.findById({ entity: "task", id: parentTaskId });
+  const { data: [parentTask] } = await data.findById({ entity: "task", id: parentTaskId });
 
-  const hierarchy = await getHierarchy(parentTask, memory);
+  const hierarchy = await getHierarchy(parentTask, data);
 
   const prompt = replaceVariables(promptPlan, {
     goal: parentTask.description,
@@ -74,12 +74,12 @@ export async function planTask(parentTaskId: string, planner: ModulePlanner): Pr
   return result;
 }
 
-async function getHierarchy(task: ModulePlannerTask, memory: ModuleMemory): Promise<ModulePlannerTask[]> {
+async function getHierarchy(task: ModulePlannerTask, data: ModuleData): Promise<ModulePlannerTask[]> {
   const hierarchy = [];
   let currentTask = task;
 
   while (currentTask.parentTaskId) {
-    const { data: [parentTask] } = await memory.findById({
+    const { data: [parentTask] } = await data.findById({
       entity: "task",
       id: currentTask.parentTaskId
     });
