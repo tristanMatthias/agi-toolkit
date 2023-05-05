@@ -3,6 +3,7 @@ import express from 'express';
 import { RegistryManifest } from '../Registry';
 import { Container } from './Container';
 import chalk from 'chalk';
+import http from 'http';
 
 
 type Call = (args: any) => Promise<any>;
@@ -15,7 +16,8 @@ export interface ContainerServerOptions {
 }
 
 export class ContainerServer {
-  #server = express();
+  #server: http.Server;
+  #app = express();
   #port: number;
   #manifest: RegistryManifest;
   #container: Container;
@@ -29,8 +31,8 @@ export class ContainerServer {
     this.#manifest = manifest;
     this.#container = container;
 
-    this.#server.use(express.json());
-    this.#server.use(express.urlencoded({ extended: true }));
+    this.#app.use(express.json());
+    this.#app.use(express.urlencoded({ extended: true }));
 
     for (const moduleName in manifest.modules) {
       if (localModules.includes(moduleName)) {
@@ -63,10 +65,16 @@ export class ContainerServer {
 
   start() {
     return new Promise<void>((resolve) => {
-      this.#server.listen(this.#port, () => {
+      this.#server = this.#app.listen(this.#port, () => {
         this.#container.ui.debug("Container", `ContainerServer listening on port ${this.#port}`);
         resolve();
       });
+    });
+  }
+
+  stop() {
+    return new Promise<void>((resolve) => {
+      this.#server.close(() => resolve());
     });
   }
 
@@ -104,7 +112,7 @@ export class ContainerServer {
     const containerModule = this.#container.module<any>(moduleName);
     // Run on the Container
     Object.entries(module.methods).forEach(([methodName, method]) => {
-      this.#server.post(
+      this.#app.post(
         `/module/${moduleName}/${methodName}`,
         async (req, res) => {
           try {
@@ -148,7 +156,7 @@ export class ContainerServer {
       `Building POST route ${chalk.yellow`/command/${commandName}`}`
     );
 
-    this.#server.post(
+    this.#app.post(
       `/command/${commandName}`,
       async (req, res) => {
         try {

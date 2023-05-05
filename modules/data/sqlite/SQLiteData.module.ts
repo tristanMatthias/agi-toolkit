@@ -38,6 +38,11 @@ export default class extends Module implements ModuleData {
     this.container.ui.debug("Data", "Database initialized");
   }
 
+  async destroy() {
+    await super.destroy();
+    await this.db.destroy();
+  }
+
   async findById(opts: ModuleDataFindByIdOptions): Promise<ModuleDataQueryResult> {
     const [res] = await this.db(opts.entity).where({ id: opts.id });
     return { data: res };

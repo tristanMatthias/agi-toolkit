@@ -1,8 +1,10 @@
+import { Container } from '@agi-toolkit/Container';
 import chalk from 'chalk';
 import express from 'express';
 import { Server } from 'http';
 import { ServerOptions, Socket, Server as WSServer } from 'socket.io';
 import { Shell } from '../lib/Shell';
+import { RegistryConfiguration } from './RegistryConfiguration';
 import { RegistryConfigurationFile, RegistryContainerMetadata, RegistryEvent, RegistryManifest } from './types';
 
 const ioConfig: Partial<ServerOptions> = {
@@ -18,6 +20,12 @@ enum ContainerStatus {
 }
 
 export class Registry {
+  private setReady: () => void;
+  private readyPromise = new Promise<void>(resolve => {
+    this.setReady = () => resolve();
+  });
+  ready() { return this.readyPromise; }
+
   private app = express();
   private httpServer = new Server(this.app);
   private io = new WSServer(this.httpServer, ioConfig);
@@ -27,8 +35,14 @@ export class Registry {
     modules: {},
     commands: {}
   };
-  private agentStatuses: Record<string, ContainerStatus> = {};
+  private containerStatuses: Record<string, ContainerStatus> = {};
+  private localContainers: Set<Container> = new Set();
   private ui = new Shell();
+
+  static fromConfig(pathToConfigFile?: string) {
+    const config = new RegistryConfiguration(pathToConfigFile);
+    return new Registry(config.config);
+  }
 
   constructor(private config: RegistryConfigurationFile) {
     this.parseConfig(config);
@@ -91,7 +105,7 @@ export class Registry {
         commands,
         modules
       };
-      this.agentStatuses[metadata.id] = ContainerStatus.Unprepared;
+      this.containerStatuses[metadata.id] = ContainerStatus.Unprepared;
       this.inform("Registration", metadata.id);
 
       if (this.checkIfAllContainersAreRegistered()) {
@@ -122,7 +136,7 @@ export class Registry {
 
   private onContainerPrepared(ContainerId: string) {
     this.inform(RegistryEvent.ContainerPrepared, ContainerId);
-    this.agentStatuses[ContainerId] = ContainerStatus.Prepared;
+    this.containerStatuses[ContainerId] = ContainerStatus.Prepared;
     if (this.checkIfAllContainersArePrepared()) {
       this.io.emit(RegistryEvent.Initialize);
       this.ui.inform('Sending initialize event to all Containers');
@@ -130,8 +144,8 @@ export class Registry {
   }
 
   private checkIfAllContainersArePrepared() {
-    for (const ContainerId in this.agentStatuses) {
-      if (this.agentStatuses[ContainerId] != ContainerStatus.Prepared) {
+    for (const ContainerId in this.containerStatuses) {
+      if (this.containerStatuses[ContainerId] != ContainerStatus.Prepared) {
         return false;
       }
     }
@@ -140,34 +154,73 @@ export class Registry {
 
   private onContainerInitialized(ContainerId: string) {
     this.inform(RegistryEvent.ContainerInitialized, ContainerId);
-    this.agentStatuses[ContainerId] = ContainerStatus.Initialized;
+    this.containerStatuses[ContainerId] = ContainerStatus.Initialized;
     if (this.checkIfAllContainersAreInitialized()) {
       this.io.emit(RegistryEvent.Started);
       this.ui.inform('Sending started event to all Containers');
       this.ui.success('All Containers are initialized');
+      this.setReady();
     }
   }
 
   private checkIfAllContainersAreInitialized() {
-    for (const ContainerId in this.agentStatuses) {
-      if (this.agentStatuses[ContainerId] != ContainerStatus.Initialized) {
+    for (const ContainerId in this.containerStatuses) {
+      if (this.containerStatuses[ContainerId] != ContainerStatus.Initialized) {
         return false;
       }
     }
     return true;
   }
 
-
   private inform(event: string, id: string) {
     this.ui.inform(`${chalk.yellow(event)}: ${chalk.blue(id)}`);
   }
 
-  start() {
-    return new Promise<void>(resolve => {
+  async start() {
+    await new Promise<void>(resolve => {
       this.httpServer.listen(this.config.port, () => {
         this.ui.success(`Registry listening on port ${this.config.port}`);
         resolve();
       });
     });
+    const defaultCommand = await this.createLocalContainers();
+    await this.ready();
+    if (defaultCommand) await defaultCommand();
+  }
+
+  shutdown() {
+    this.io.close();
+    this.httpServer.close();
+    this.localContainers.forEach(c => c.destroy());
+  }
+
+  private async createLocalContainers(): Promise<(() => void) | null> {
+    // Create the local containers if specified in the config
+    let moduleName: string | undefined;
+    let methodName: string | undefined;
+
+    if (this.config.command) {
+      [moduleName, methodName] = this.config.command.split('.');
+    }
+    let commandContainer: Container | undefined;
+
+    // Create containers if specified in the config
+    for (const containerConfig of this.config.containers ?? []) {
+      containerConfig.registryUrl = `http://localhost:${this.config.port}`;
+      const c = new Container(containerConfig);
+      if (moduleName && containerConfig.modules[moduleName]) {
+        commandContainer = c;
+      }
+      this.localContainers.add(c);
+    }
+
+    // Run the command if specified (module.methodName)
+    if (commandContainer && moduleName && methodName) {
+      await commandContainer.ready();
+      const module = commandContainer.module<any>(moduleName);
+      return () => module[methodName as keyof typeof module]();
+    }
+
+    return null;
   }
 }

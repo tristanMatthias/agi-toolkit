@@ -1,8 +1,9 @@
-import { RegistryConfiguration } from "@agi-toolkit/Registry";
+import { Registry } from "@agi-toolkit/Registry";
 
-new RegistryConfiguration(
-  "./examples/from-config/agi.config.yml"
-).createAndStart();
+(async () => {
+  const r = Registry.fromConfig("./examples/from-config/agi.config.yml");
+  await r.start();
+})();
 
 // ================================================================ The Old way:
 

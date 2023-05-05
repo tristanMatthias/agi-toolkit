@@ -17,6 +17,7 @@ import loadModule from './loadModule';
 import { ContainerConfigurationFile } from './types';
 import { ContainerServer } from './ContainerServer';
 import getPort from 'get-port';
+
 export class Container {
   public manifest: RegistryManifest | null = null;
   public ui = new Shell();
@@ -95,6 +96,14 @@ export class Container {
       await this.initializeModules();
       this.socket.emit(RegistryEvent.ContainerInitialized, this.id);
     });
+  }
+
+  async destroy() {
+    this.socket.disconnect();
+    await this.api.stop();
+    await Promise.all(
+      Array.from(this.modules.values()).map(module => module.destroy())
+    );
   }
 
   private async onRegistrationClosed(manifest: RegistryManifest) {

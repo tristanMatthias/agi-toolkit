@@ -14,4 +14,6 @@ export class Module<Config = Record<string, any>> {
   async initialize(): Promise<any> {
     await Promise.all(this.commands.map(command => command.initialize()));
   }
+
+  async destroy() { }
 }
